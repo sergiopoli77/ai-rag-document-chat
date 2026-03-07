@@ -1,3 +1,6 @@
+import { loadPDF } from "../utils/pdfLoader.js"
+import { splitText } from "../services/textSplitter.js"
+
 export const uploadPDF = async (req, res) => {
 
   try {
@@ -8,10 +11,15 @@ export const uploadPDF = async (req, res) => {
       })
     }
 
+    const filePath = req.file.path
+
+    const text = await loadPDF(filePath)
+
+    const chunks = await splitText(text)
+
     res.json({
-      message: "PDF uploaded successfully",
-      filename: req.file.filename,
-      path: req.file.path
+      message: "PDF processed successfully",
+      chunks: chunks.length
     })
 
   } catch (error) {
