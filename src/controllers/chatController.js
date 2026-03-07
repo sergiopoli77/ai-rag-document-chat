@@ -70,6 +70,21 @@ export const askQuestion = async (req, res) => {
       .map(doc => doc.pageContent)
       .join("\n")
 
+    // Ambil source information
+    const sources = results.map(doc => {
+      const page = doc.metadata?.loc?.pageNumber || doc.metadata?.page || 'unknown'
+      const source = doc.metadata?.source || 'document'
+      return {
+        page,
+        source: source.split('\\').pop() // Ambil filename saja
+      }
+    })
+
+    // Deduplicate sources
+    const uniqueSources = [...new Map(sources.map(s => 
+      [`${s.source}-${s.page}`, s]
+    )).values()]
+
     // 2. Inisialisasi model Gemini
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
@@ -88,7 +103,8 @@ ${question}
 `)
 
     res.json({
-      answer: response.content
+      answer: response.content,
+      sources: uniqueSources.map(s => `${s.source} halaman ${s.page}`)
     })
 
   } catch (error) {
