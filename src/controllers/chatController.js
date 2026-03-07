@@ -73,7 +73,7 @@ export const askQuestion = async (req, res) => {
     // 2. Inisialisasi model Gemini
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
-      model: "gemini-1.5-flash"
+      model: "gemini-2.5-flash"
     })
 
     // 3. Kirim context + pertanyaan ke LLM

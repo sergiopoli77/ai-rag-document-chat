@@ -8,8 +8,8 @@ let vectorStore = null
 const getEmbeddings = () => {
   if (!embeddings) {
     embeddings = new GoogleGenerativeAIEmbeddings({
-        model: "text-embedding-004",
-        apiKey: process.env.GOOGLE_API_KEY
+      model: "gemini-embedding-001",
+      apiKey: process.env.GOOGLE_API_KEY
     })
   }
   return embeddings
