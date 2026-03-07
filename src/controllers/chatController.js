@@ -1,6 +1,11 @@
 import { loadPDF } from "../utils/pdfLoader.js"
 import { splitText } from "../services/textSplitter.js"
 
+import { createVectorStore, getVectorStore } from "../services/vectorStore.js"
+
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
+
+
 export const uploadPDF = async (req, res) => {
 
   try {
@@ -13,12 +18,17 @@ export const uploadPDF = async (req, res) => {
 
     const filePath = req.file.path
 
-    const text = await loadPDF(filePath)
+    // 1. Load PDF
+    const docs = await loadPDF(filePath)
 
-    const chunks = await splitText(text)
+    // 2. Split text menjadi chunks
+    const chunks = await splitText(docs)
+
+    // 3. Buat embedding + simpan ke vector store
+    await createVectorStore(chunks)
 
     res.json({
-      message: "PDF processed successfully",
+      message: "PDF processed and embeddings created",
       chunks: chunks.length
     })
 
@@ -32,15 +42,53 @@ export const uploadPDF = async (req, res) => {
 
 }
 
+
 export const askQuestion = async (req, res) => {
 
   try {
 
     const { question } = req.body
 
+    if (!question) {
+      return res.status(400).json({
+        error: "Question is required"
+      })
+    }
+
+    const vectorStore = getVectorStore()
+
+    if (!vectorStore) {
+      return res.status(400).json({
+        error: "No document indexed yet. Upload a PDF first."
+      })
+    }
+
+    // 1. Cari context paling relevan
+    const results = await vectorStore.similaritySearch(question, 3)
+
+    const context = results
+      .map(doc => doc.pageContent)
+      .join("\n")
+
+    // 2. Inisialisasi model Gemini
+    const model = new ChatGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_API_KEY,
+      model: "gemini-1.5-flash"
+    })
+
+    // 3. Kirim context + pertanyaan ke LLM
+    const response = await model.invoke(`
+You are an AI assistant answering questions based only on the provided context.
+
+Context:
+${context}
+
+Question:
+${question}
+`)
+
     res.json({
-      question,
-      answer: "AI answer will be here"
+      answer: response.content
     })
 
   } catch (error) {
