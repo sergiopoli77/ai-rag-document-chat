@@ -1,6 +1,5 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai"
 import { MemoryVectorStore } from "langchain/vectorstores/memory"
-import { Document } from "langchain/document"
 
 let embeddings = null
 let vectorStore = null
@@ -17,14 +16,9 @@ const getEmbeddings = () => {
 
 export const createVectorStore = async (chunks) => {
 
-  const docs = chunks.map(chunk =>
-    new Document({
-      pageContent: chunk
-    })
-  )
-
+  // chunks sudah berupa Document objects dari splitText
   vectorStore = await MemoryVectorStore.fromDocuments(
-    docs,
+    chunks,
     getEmbeddings()
   )
 }
