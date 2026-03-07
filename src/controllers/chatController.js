@@ -1,8 +1,17 @@
 export const uploadPDF = async (req, res) => {
+
   try {
 
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No file uploaded"
+      })
+    }
+
     res.json({
-      message: "PDF upload endpoint working"
+      message: "PDF uploaded successfully",
+      filename: req.file.filename,
+      path: req.file.path
     })
 
   } catch (error) {
@@ -12,6 +21,7 @@ export const uploadPDF = async (req, res) => {
     })
 
   }
+
 }
 
 export const askQuestion = async (req, res) => {
