@@ -1,4 +1,4 @@
-import { PDFLoader } from "langchain/document_loaders/fs/pdf"
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
 import path from "path"
 
 export const loadPDF = async (filePath) => {
@@ -9,6 +9,7 @@ export const loadPDF = async (filePath) => {
 
   // Tambahkan filename ke metadata
   const filename = path.basename(filePath)
+
   docs.forEach(doc => {
     doc.metadata = {
       ...doc.metadata,
@@ -17,5 +18,4 @@ export const loadPDF = async (filePath) => {
   })
 
   return docs
-
 }

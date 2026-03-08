@@ -1,7 +1,7 @@
 import { loadPDF } from "../utils/pdfLoader.js"
 import { splitText } from "../services/textSplitter.js"
 
-import { createVectorStore, getVectorStore } from "../services/vectorStore.js"
+import { createVectorStore, getVectorStore, similaritySearch } from "../services/vectorStore.js"
 
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 
@@ -55,16 +55,23 @@ export const askQuestion = async (req, res) => {
       })
     }
 
-    const vectorStore = getVectorStore()
-
-    if (!vectorStore) {
+    // Check if collection exists
+    try {
+      await getVectorStore()
+    } catch (error) {
       return res.status(400).json({
         error: "No document indexed yet. Upload a PDF first."
       })
     }
 
     // 1. Cari context paling relevan
-    const results = await vectorStore.similaritySearch(question, 3)
+    const results = await similaritySearch(question, 3)
+
+    if (results.length === 0) {
+      return res.status(400).json({
+        error: "No relevant content found. Try uploading a PDF first."
+      })
+    }
 
     const context = results
       .map(doc => doc.pageContent)

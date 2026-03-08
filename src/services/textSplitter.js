@@ -9,6 +9,14 @@ export const splitText = async (docs) => {
 
   const chunks = await splitter.splitDocuments(docs)
 
-  return chunks
+  // Filter out empty chunks
+  const validChunks = chunks.filter(chunk => {
+    const content = chunk.pageContent?.trim()
+    return content && content.length > 0
+  })
+
+  console.log(`Total chunks: ${chunks.length}, Valid chunks: ${validChunks.length}`)
+
+  return validChunks
 
 }
